@@ -13,7 +13,8 @@ import SkillForm from "./components/SkillForm";
 import HobbyForm from "./components/HobbyForm";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
-import confetti from "canvas-confetti"
+import confetti from "canvas-confetti";
+import {themes} from './components/Themes';
 
 export default function Home() {
   const [personalDetails, setPersonalDetails] = useState<PersonalDetails>(personalDetailsPreset)
@@ -25,53 +26,24 @@ export default function Home() {
   const [languages, setLanguages] = useState<Language[]>(languagesPreset)
   const [skills, setSkills] = useState<Skill[]>(skillsPreset)
   const [hobbies, setHobbies] = useState<Hobby[]>(hobbiesPreset);
-
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   useEffect(() => {
-    const defaultImageUrl = '/logo.png'
-    fetch(defaultImageUrl)
-      .then((res) => res.blob())
-      .then((blob) => {
-        const defaultFile = new File([blob], "logo.png", { type: blob.type })
+    const loadDefaultImage = async () => {
+      try {
+        const defaultImageUrl = '/logo.png';
+        const response = await fetch(defaultImageUrl);
+        const blob = await response.blob();
+        const defaultFile = new File([blob], "logo.png", { type: blob.type });
+        setFile(defaultFile);
+      } catch (error) {
+        console.error('Erreur lors du chargement de l\'image par défaut :', error);
+      }
+    };
+  
+    loadDefaultImage();
+  }, []);
 
-        setFile(defaultFile)
 
-      })
-  }, [])
-
-  const themes = [
-    "light",
-    "dark",
-    "cupcake",
-    "bumblebee",
-    "emerald",
-    "corporate",
-    "synthwave",
-    "retro",
-    "cyberpunk",
-    "valentine",
-    "halloween",
-    "garden",
-    "forest",
-    "aqua",
-    "lofi",
-    "pastel",
-    "fantasy",
-    "wireframe",
-    "black",
-    "luxury",
-    "dracula",
-    "cmyk",
-    "autumn",
-    "business",
-    "acid",
-    "lemonade",
-    "night",
-    "coffee",
-    "winter",
-    "dim",
-    "nord",
-    "sunset",
-  ]
 
   const handleResetPersonalDetails = () => setPersonalDetails(
     {
@@ -84,7 +56,14 @@ export default function Home() {
       description: ''
     }
   )
-
+  const handleResetAll = () => {
+    setPersonalDetails(personalDetailsPreset);
+    setExperience([]);
+    setEducations([]);
+    setLanguages([]);
+    setSkills([]);
+    setHobbies([]);
+  };
   const handleResetExperiences = () => setExperience([])
   const handleResetEducations = () => setEducations([])
   const handleResetLanguages = () => setLanguages([])
@@ -94,46 +73,48 @@ export default function Home() {
   const cvPreviewRef = useRef(null)
 
   const handleDownloadPdf = async () => {
-    const element = cvPreviewRef.current
-    if(element){
+    setIsGeneratingPdf(true); // Active l'indicateur de chargement
+    const element = cvPreviewRef.current;
+    if (element) {
       try {
-
-        const canvas = await html2canvas(element , {
-          scale : 3,
+        const canvas = await html2canvas(element, {
+          scale: 3,
           useCORS: true,
-        })
-        const imgData = canvas.toDataURL('image/png')
-
+        });
+        const imgData = canvas.toDataURL('image/png');
+  
         const pdf = new jsPDF({
-          orientation:"portrait",
-          unit:'mm',
-          format:"A4"
-        })
-        
-        const pdfWidth = pdf.internal.pageSize.getWidth()
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width 
-
+          orientation: "portrait",
+          unit: 'mm',
+          format: "A4"
+        });
+  
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+  
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`cv.pdf`)
-
-        const modal = document.getElementById('my_modal_3') as HTMLDialogElement
-        if(modal){
-          modal.close()
+        pdf.save(`cv.pdf`);
+  
+        const modal = document.getElementById('my_modal_3') as HTMLDialogElement;
+        if (modal) {
+          modal.close();
         }
-
+  
         confetti({
-             particleCount: 100,
-             spread: 70 ,
-             origin: {y:0.6},
-             zIndex:9999
-        })
-
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          zIndex: 9999
+        });
+  
       } catch (error) {
-         console.error('Erreur lors de la génération du PDF :', error);
+        console.error('Erreur lors de la génération du PDF :', error);
+        alert('Une erreur est survenue lors de la génération du PDF. Veuillez réessayer.');
+      } finally {
+        setIsGeneratingPdf(false); // Désactive l'indicateur de chargement, que la génération réussisse ou échoue
       }
     }
-  }
-
+  };
 
   return (
     <div>
@@ -239,17 +220,19 @@ export default function Home() {
                   </div>
                   <HobbyForm hobbies={hobbies} setHobbies={setHobbies} />
                 </div>
-
-
+               
 
               </div>
+              <button onClick={handleResetAll} className="btn btn-primary">
+  Réinitialiser tout
+</button>
 
 
             </div>
 
           </div>
 
-          <div className="w-2/3 h-full bg-base-100 bg-[url('/file.svg')] bg-cover  bg-center scrollable-preview relative">
+          <div className="w-2/3 h-full bg-base-100 bg-[url('/files.svg')] bg-cover  bg-center scrollable-preview relative">
 
 
             <div className="flex items-center justify-center fixed z-[9999] top-5 right-5">
@@ -276,23 +259,23 @@ export default function Home() {
             </select>
 
             <div
-              className="flex justify-center items-center"
-              style={{
-                transform: `scale(${zoom / 200})`
-              }}
-            >
-              <CVPreview
-                personalDetails={personalDetails}
-                file={file}
-                theme={theme}
-                experiences={experiences}
-                educations={educations}
-                languages={languages}
-                hobbies={hobbies}
-                skills={skills}
-
-              />
-            </div>
+  className="flex justify-center items-center"
+  style={{
+    transform: `scale(${zoom / 200})`,
+    transition: 'transform 0.3s ease-in-out' // Ajoutez une transition pour une animation fluide
+  }}
+>
+  <CVPreview
+    personalDetails={personalDetails}
+    file={file}
+    theme={theme}
+    experiences={experiences}
+    educations={educations}
+    languages={languages}
+    hobbies={hobbies}
+    skills={skills}
+  />
+</div>
 
           </div>
 
@@ -310,10 +293,23 @@ export default function Home() {
 
             <div className="mt-5">
               <div className="flex justify-end mb-5">
-                <button onClick={handleDownloadPdf} className="btn btn-primary">
-                  Télécharger
-                  <Save className='w-4' />
-                </button>
+              <button 
+  onClick={handleDownloadPdf} 
+  className="btn btn-primary"
+  disabled={isGeneratingPdf} // Désactive le bouton pendant la génération
+>
+  {isGeneratingPdf ? (
+    <>
+      <span className="loading loading-spinner"></span> {/* Indicateur de chargement */}
+      Génération en cours...
+    </>
+  ) : (
+    <>
+      Télécharger
+      <Save className="w-4" />
+    </>
+  )}
+</button>
               </div>
 
               <div className="w-full max-x-full overflow-auto">
