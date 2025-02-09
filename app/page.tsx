@@ -27,11 +27,11 @@ export default function Home() {
   const [hobbies, setHobbies] = useState<Hobby[]>(hobbiesPreset);
 
   useEffect(() => {
-    const defaultImageUrl = '/profile.jpg'
+    const defaultImageUrl = '/logo.png'
     fetch(defaultImageUrl)
       .then((res) => res.blob())
       .then((blob) => {
-        const defaultFile = new File([blob], "profile.jpg", { type: blob.type })
+        const defaultFile = new File([blob], "logo.png", { type: blob.type })
 
         setFile(defaultFile)
 
@@ -143,8 +143,8 @@ export default function Home() {
           <div className="w-1/3 h-full p-10 bg-base-200 scrollable no-scrollbar ">
             <div className="mb-4 flex justify-between items-center">
               <h1 className="text-2xl font-bold italic">
-                CV
-                <span className="text-primary">Builder</span>
+                LENAMON
+                <span className="text-primary"> AS</span>
 
               </h1>
 
@@ -341,24 +341,25 @@ export default function Home() {
       </div>
 
       <div className="lg:hidden">
-        <div className="hero bg-base-200 min-h-screen">
-          <div className="hero-content text-center">
-            <div className="max-w-md">
-              <h1 className="text-3xl font-bold">Désolé, le CV Builder est uniquement accessible sur ordinateur.</h1>
-              <Image
-                src="/sad-sorry.gif"
-                width={500}
-                height={500}
-                alt="Picture of the author"
-                className="mx-auto my-6"
-              />
-              <p className="py-6">
-                Pour créer et personnaliser votre CV, veuillez utiliser un ordinateur. Nous vous remercions de votre compréhension.
-              </p>
-            </div>
-          </div>
-        </div>
+  <div className="hero bg-base-200 min-h-screen">
+    <div className="hero-content text-center">
+      <div className="max-w-md">
+        <h1 className="text-3xl font-bold">Désolé, le CV Builder est uniquement accessible sur ordinateur.</h1>
+        <Image
+          src="/sad-sorry.gif"
+          width={500}
+          height={500}
+          alt="Picture of the author"
+          className="mx-auto my-6"
+          onLoad={() => console.log('Image loaded successfully')} // Replace onLoadingComplete with onLoad
+        />
+        <p className="py-6">
+          Pour créer et personnaliser votre CV, veuillez utiliser un ordinateur. Nous vous remercions de votre compréhension.
+        </p>
       </div>
+    </div>
+  </div>
+</div>
     </div>
   );
 }
